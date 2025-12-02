@@ -1,7 +1,7 @@
 <?php
 /**
- * Gender Statistics API
- * Returns count of fisherfolk by gender
+ * Barangay List API
+ * Returns list of all unique barangays
  */
 
 require_once __DIR__ . '/../config/database.php';
@@ -9,12 +9,9 @@ require_once __DIR__ . '/../config/database.php';
 setJSONHeaders();
 
 try {
-    $sql = "SELECT 
-                sex as gender,
-                COUNT(*) as count
+    $sql = "SELECT DISTINCT address as barangay
             FROM fisherfolk
-            GROUP BY sex
-            ORDER BY count DESC";
+            ORDER BY address ASC";
     
     $results = executeQuery($sql);
     

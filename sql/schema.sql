@@ -2,8 +2,8 @@
 -- Created for Calapan City FMO by Powerbyte IT Solutions
 
 -- Create database
-CREATE DATABASE IF NOT EXISTS fisherfolk_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE fisherfolk_db;
+CREATE DATABASE IF NOT EXISTS fmo_fisherfolk_management_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE fmo_fisherfolk_management_system;
 
 -- Fisherfolk table
 CREATE TABLE IF NOT EXISTS fisherfolk (

@@ -72,8 +72,8 @@ else
 fi
 
 # Create database and import schema
-echo -n "Creating database 'fisherfolk_db'... "
-mysql -u"$DB_USER" -p"$DB_PASS" -e "CREATE DATABASE IF NOT EXISTS fisherfolk_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci" 2>/dev/null
+echo -n "Creating database 'fmo_fisherfolk_management_system'... "
+mysql -u"$DB_USER" -p"$DB_PASS" -e "CREATE DATABASE IF NOT EXISTS fmo_fisherfolk_management_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci" 2>/dev/null
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ Done${NC}"
 else
@@ -83,7 +83,7 @@ fi
 
 # Import schema
 echo -n "Importing database schema... "
-mysql -u"$DB_USER" -p"$DB_PASS" fisherfolk_db < sql/schema.sql 2>/dev/null
+mysql -u"$DB_USER" -p"$DB_PASS" fmo_fisherfolk_management_system < sql/schema.sql 2>/dev/null
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ Done${NC}"
 else
@@ -93,7 +93,7 @@ fi
 
 # Import sample data
 echo -n "Importing sample data... "
-mysql -u"$DB_USER" -p"$DB_PASS" fisherfolk_db < sql/sample_data.sql 2>/dev/null
+mysql -u"$DB_USER" -p"$DB_PASS" fmo_fisherfolk_management_system < sql/sample_data.sql 2>/dev/null
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ Done${NC}"
 else
@@ -102,7 +102,7 @@ else
 fi
 
 # Verify data
-RECORD_COUNT=$(mysql -u"$DB_USER" -p"$DB_PASS" fisherfolk_db -se "SELECT COUNT(*) FROM fisherfolk" 2>/dev/null)
+RECORD_COUNT=$(mysql -u"$DB_USER" -p"$DB_PASS" fmo_fisherfolk_management_system -se "SELECT COUNT(*) FROM fisherfolk" 2>/dev/null)
 echo "Records imported: $RECORD_COUNT fisherfolk"
 
 echo ""

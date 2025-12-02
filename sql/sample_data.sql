@@ -1,7 +1,7 @@
 -- Sample data for Fisherfolk Management System
 -- Barangays in Calapan City
 
-USE fisherfolk_db;
+USE fmo_fisherfolk_management_system;
 
 -- Insert sample fisherfolk data
 INSERT INTO fisherfolk (id_number, full_name, date_of_birth, address, sex, rsbsa, contact_number, boat_owneroperator, capture_fishing, gleaning, vendor, fish_processing, aquaculture) VALUES

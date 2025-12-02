@@ -1,10 +1,10 @@
 <?php
 /**
  * Category Statistics API
- * Returns count of fisherfolk by activity category
+ * Returns fisherfolk count by activity category
  */
 
-require_once '../config/database.php';
+require_once __DIR__ . '/../config/database.php';
 
 setJSONHeaders();
 
