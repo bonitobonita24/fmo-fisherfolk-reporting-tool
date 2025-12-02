@@ -1,0 +1,3 @@
+id_number,full_name,date_of_birth,address,sex,image,signature,rsbsa,contact_number,boat_owneroperator,capture_fishing,gleaning,vendor,fish_processing,aquaculture
+FF-001,Juan Dela Cruz,15/05/1980,Bayanan I,Male,,,RSBSA-001,09171234567,1,1,0,0,0,0
+FF-002,Maria Santos,22/08/1985,Canubing I,Female,,,RSBSA-002,09181234567,0,0,1,1,0,0

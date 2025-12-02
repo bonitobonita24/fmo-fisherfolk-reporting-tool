@@ -7,12 +7,14 @@
 // Configuration
 const API_BASE_URL = '/api';
 const THEME_COLORS = {
-    primary: '#FFA500',    // Blue
-    secondary: '#0000FF',  // Orange
-    success: '#28a745',
-    info: '#17a2b8',
-    warning: '#ffc107',
-    danger: '#dc3545'
+    primary: '#F28500',    // Tangerine Orange
+    secondary: '#0000FF',  // Blue
+    success: '#10b981',
+    info: '#3b82f6',
+    warning: '#f59e0b',
+    danger: '#ef4444',
+    pink: '#ec4899',
+    green: '#22c55e'
 };
 
 // Chart.js default configuration
@@ -21,6 +23,10 @@ Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
 
 // Global chart instances
 let barangayChart, genderChart, ageGroupChart, categoryChart, barangayCategoryChart;
+
+// Global data storage for filtering/sorting
+let allFisherfolkData = [];
+let filteredFisherfolkData = [];
 
 /**
  * Fetch data from API endpoint
@@ -322,18 +328,29 @@ async function loadBarangayFilter() {
     }
     
     const select = document.getElementById('barangayFilter');
+    const selectList = document.getElementById('barangayFilterList');
     
-    // Add barangay options
+    // Add barangay options to both dropdowns
     data.forEach(item => {
-        const option = document.createElement('option');
-        option.value = item.barangay;
-        option.textContent = item.barangay;
-        select.appendChild(option);
+        const option1 = document.createElement('option');
+        option1.value = item.barangay;
+        option1.textContent = item.barangay;
+        select.appendChild(option1);
+        
+        const option2 = document.createElement('option');
+        option2.value = item.barangay;
+        option2.textContent = item.barangay;
+        selectList.appendChild(option2);
     });
     
-    // Add event listener for filter change
+    // Add event listener for chart filter change
     select.addEventListener('change', function() {
         createBarangayCategoryChart(this.value);
+        loadFisherfolkList(this.value);
+    });
+    
+    // Add event listener for list filter change
+    selectList.addEventListener('change', function() {
         loadFisherfolkList(this.value);
     });
 }
@@ -427,46 +444,111 @@ async function loadFisherfolkList(barangay = 'all') {
     
     const data = await fetchData(endpoint);
     
-    const tbody = document.getElementById('fisherfolkTableBody');
-    const noDataMsg = document.getElementById('noDataMessage');
-    const titleSpan = document.getElementById('fisherfolfListTitle');
-    
-    // Update title
-    if (barangay === 'all') {
-        titleSpan.textContent = '(All Barangays)';
-    } else {
-        titleSpan.textContent = `(${barangay})`;
-    }
-    
     if (!data || data.length === 0) {
-        tbody.innerHTML = '';
-        noDataMsg.style.display = 'block';
+        allFisherfolkData = [];
+        filteredFisherfolkData = [];
+        displayFisherfolkList([]);
         return;
     }
     
-    noDataMsg.style.display = 'none';
+    // Store data globally
+    allFisherfolkData = data;
     
-    // Build table rows
-    tbody.innerHTML = data.map(fisherfolk => {
-        // Build activity categories badges
+    // Apply current filters and sort
+    applyFiltersAndSort();
+}
+
+/**
+ * Apply search, filter, and sort to fisherfolk list
+ */
+function applyFiltersAndSort() {
+    let data = [...allFisherfolkData];
+    
+    // Apply search filter
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    if (searchTerm) {
+        data = data.filter(item => {
+            const idMatch = (item.id_number || '').toLowerCase().includes(searchTerm);
+            const nameMatch = (item.full_name || '').toLowerCase().includes(searchTerm);
+            const rsbsaMatch = (item.rsbsa || '').toLowerCase().includes(searchTerm);
+            return idMatch || nameMatch || rsbsaMatch;
+        });
+    }
+    
+    // Apply category filter
+    const categoryFilter = document.getElementById('categoryFilter').value;
+    if (categoryFilter !== 'all') {
+        data = data.filter(item => item[categoryFilter] == 1);
+    }
+    
+    // Apply sort
+    const sortBy = document.getElementById('sortBy').value;
+    data.sort((a, b) => {
+        switch(sortBy) {
+            case 'name_asc':
+                return (a.full_name || '').localeCompare(b.full_name || '');
+            case 'name_desc':
+                return (b.full_name || '').localeCompare(a.full_name || '');
+            case 'id_asc':
+                return (a.id_number || '').localeCompare(b.id_number || '');
+            case 'id_desc':
+                return (b.id_number || '').localeCompare(a.id_number || '');
+            case 'barangay_asc':
+                return (a.address || '').localeCompare(b.address || '');
+            case 'barangay_desc':
+                return (b.address || '').localeCompare(a.address || '');
+            default:
+                return 0;
+        }
+    });
+    
+    filteredFisherfolkData = data;
+    displayFisherfolkList(data);
+}
+
+/**
+ * Display fisherfolk list in table
+ */
+function displayFisherfolkList(data) {
+    const tbody = document.getElementById('fisherfolkTableBody');
+    const noDataMsg = document.getElementById('noDataMessage');
+    const resultCount = document.getElementById('resultCount');
+    
+    // Update result count
+    resultCount.textContent = data.length;
+    
+    if (!data || data.length === 0) {
+        tbody.innerHTML = '';
+        noDataMsg.classList.remove('hidden');
+        return;
+    }
+    
+    noDataMsg.classList.add('hidden');
+    
+    // Build table rows with Tailwind classes
+    tbody.innerHTML = data.map((fisherfolk, index) => {
+        // Build activity categories badges with Tailwind
         const categories = [];
-        if (fisherfolk.boat_owneroperator == 1) categories.push('<span class="badge bg-primary">Boat Owner/Operator</span>');
-        if (fisherfolk.capture_fishing == 1) categories.push('<span class="badge bg-success">Capture Fishing</span>');
-        if (fisherfolk.gleaning == 1) categories.push('<span class="badge bg-info">Gleaning</span>');
-        if (fisherfolk.vendor == 1) categories.push('<span class="badge bg-warning">Vendor</span>');
-        if (fisherfolk.fish_processing == 1) categories.push('<span class="badge bg-danger">Fish Processing</span>');
-        if (fisherfolk.aquaculture == 1) categories.push('<span class="badge bg-secondary">Aquaculture</span>');
+        if (fisherfolk.boat_owneroperator == 1) categories.push('<span class="inline-block bg-primary text-white text-xs px-2 py-1 rounded mr-1 mb-1">Boat Owner/Operator</span>');
+        if (fisherfolk.capture_fishing == 1) categories.push('<span class="inline-block bg-green-500 text-white text-xs px-2 py-1 rounded mr-1 mb-1">Capture Fishing</span>');
+        if (fisherfolk.gleaning == 1) categories.push('<span class="inline-block bg-blue-500 text-white text-xs px-2 py-1 rounded mr-1 mb-1">Gleaning</span>');
+        if (fisherfolk.vendor == 1) categories.push('<span class="inline-block bg-yellow-500 text-white text-xs px-2 py-1 rounded mr-1 mb-1">Vendor</span>');
+        if (fisherfolk.fish_processing == 1) categories.push('<span class="inline-block bg-red-500 text-white text-xs px-2 py-1 rounded mr-1 mb-1">Fish Processing</span>');
+        if (fisherfolk.aquaculture == 1) categories.push('<span class="inline-block bg-gray-600 text-white text-xs px-2 py-1 rounded mr-1 mb-1">Aquaculture</span>');
         
-        const categoriesHtml = categories.length > 0 ? categories.join(' ') : '<span class="text-muted">None</span>';
+        const categoriesHtml = categories.length > 0 ? categories.join(' ') : '<span class="text-gray-400 text-sm">None</span>';
+        
+        const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
         
         return `
-            <tr>
-                <td>${fisherfolk.id_number || 'N/A'}</td>
-                <td>${fisherfolk.full_name}</td>
-                <td>${fisherfolk.address}</td>
-                <td>${fisherfolk.sex}</td>
-                <td>${fisherfolk.contact_number || 'N/A'}</td>
-                <td>${categoriesHtml}</td>
+            <tr class="${rowClass} hover:bg-orange-50 transition-colors">
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">${fisherfolk.id_number || 'N/A'}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${fisherfolk.full_name}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${fisherfolk.rsbsa || 'N/A'}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">${fisherfolk.address}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">${fisherfolk.sex}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${fisherfolk.contact_number || 'N/A'}</td>
+                <td class="px-4 py-3 text-sm">${categoriesHtml}</td>
             </tr>
         `;
     }).join('');
@@ -535,8 +617,41 @@ async function refreshDashboard() {
     await initializeDashboard();
 }
 
+/**
+ * Setup search and filter event listeners
+ */
+function setupSearchAndFilters() {
+    // Search input
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', function() {
+        applyFiltersAndSort();
+    });
+    
+    // Clear search button
+    const clearSearch = document.getElementById('clearSearch');
+    clearSearch.addEventListener('click', function() {
+        searchInput.value = '';
+        applyFiltersAndSort();
+    });
+    
+    // Category filter
+    const categoryFilter = document.getElementById('categoryFilter');
+    categoryFilter.addEventListener('change', function() {
+        applyFiltersAndSort();
+    });
+    
+    // Sort dropdown
+    const sortBy = document.getElementById('sortBy');
+    sortBy.addEventListener('change', function() {
+        applyFiltersAndSort();
+    });
+}
+
 // Initialize dashboard when DOM is ready
-document.addEventListener('DOMContentLoaded', initializeDashboard);
+document.addEventListener('DOMContentLoaded', function() {
+    initializeDashboard();
+    setupSearchAndFilters();
+});
 
 // Auto-refresh every 5 minutes (optional)
 // setInterval(refreshDashboard, 5 * 60 * 1000);
