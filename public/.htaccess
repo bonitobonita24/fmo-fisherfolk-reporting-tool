@@ -15,8 +15,8 @@ Options -Indexes
     Deny from all
 </FilesMatch>
 
-# Security: Protect config files
-<FilesMatch "(config|env|database)\.php$">
+# Security: Protect config files (but allow from parent directory includes)
+<FilesMatch "^(config|database)\.php$">
     Order allow,deny
     Deny from all
 </FilesMatch>
