@@ -4,7 +4,7 @@
  * Returns list of fisherfolk for a specific barangay with their details
  */
 
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/env.php';
 
 setJSONHeaders();
 

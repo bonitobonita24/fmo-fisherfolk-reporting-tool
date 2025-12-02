@@ -1,10 +1,10 @@
 <?php
 /**
  * Barangay List API
- * Returns list of all unique barangays
+ * Returns list of all barangays
  */
 
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/env.php';
 
 setJSONHeaders();
 
