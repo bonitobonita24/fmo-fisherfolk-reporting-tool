@@ -541,7 +541,18 @@ function displayFisherfolkList(data) {
         const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
         
         // Handle image with placeholder fallback and loading state
-        const imageUrl = fisherfolk.image && fisherfolk.image.trim() !== '' ? fisherfolk.image : '/assets/images/face.png';
+        // If image is just a filename (no path), prepend /images/
+        let imageUrl = '/assets/images/face.png'; // default placeholder
+        if (fisherfolk.image && fisherfolk.image.trim() !== '') {
+            const imgPath = fisherfolk.image.trim();
+            // Check if it's just a filename (no / or http)
+            if (!imgPath.includes('/') && !imgPath.startsWith('http')) {
+                imageUrl = '/images/' + imgPath;
+            } else {
+                imageUrl = imgPath;
+            }
+        }
+        
         const escapedName = (fisherfolk.full_name || '').replace(/'/g, "\\'");
         const escapedUrl = imageUrl.replace(/'/g, "\\'");
         
