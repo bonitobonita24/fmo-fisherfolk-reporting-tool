@@ -540,8 +540,18 @@ function displayFisherfolkList(data) {
         
         const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
         
+        // Handle image with placeholder fallback
+        const imageUrl = fisherfolk.image || '/assets/images/face.png';
+        const imageHtml = `
+            <img src="${imageUrl}" 
+                 alt="${fisherfolk.full_name}" 
+                 class="w-12 h-12 rounded-full object-cover border-2 border-gray-200 cursor-pointer hover:opacity-75 transition-opacity"
+                 onclick="openImageModal('${imageUrl}', '${fisherfolk.full_name}')"
+                 onerror="this.src='/assets/images/face.png'">`;
+        
         return `
             <tr class="${rowClass} hover:bg-orange-50 transition-colors">
+                <td class="px-4 py-3 whitespace-nowrap">${imageHtml}</td>
                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">${fisherfolk.id_number || 'N/A'}</td>
                 <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${fisherfolk.full_name}</td>
                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${fisherfolk.rsbsa || 'N/A'}</td>
@@ -645,6 +655,35 @@ function setupSearchAndFilters() {
     sortBy.addEventListener('change', function() {
         applyFiltersAndSort();
     });
+}
+
+/**
+ * Open image modal
+ */
+function openImageModal(imageUrl, name) {
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalName = document.getElementById('modalName');
+    
+    modalImage.src = imageUrl;
+    modalName.textContent = name;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+}
+
+/**
+ * Close image modal
+ */
+function closeImageModal() {
+    const modal = document.getElementById('imageModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    
+    // Restore body scroll
+    document.body.style.overflow = 'auto';
 }
 
 // Initialize dashboard when DOM is ready
