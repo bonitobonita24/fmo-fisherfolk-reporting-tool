@@ -43,3 +43,7 @@ AddDefaultCharset UTF-8
 # Error pages (optional)
 # ErrorDocument 404 /404.html
 # ErrorDocument 500 /500.html
+
+# Force to HTTPS
+RewriteCond %{SERVER_PORT} 80
+RewriteRule ^(.*)$ <https://fisherfolks.powerbyteitsolutions.com/public/$1> [R,L]
