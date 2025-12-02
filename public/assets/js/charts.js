@@ -540,8 +540,8 @@ function displayFisherfolkList(data) {
         
         const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
         
-        // Reliable placeholder fallback
-        const placeholderImage = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext fill="%236b7280" font-family="Arial" font-size="14" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ENo Photo%3C/text%3E%3C/svg%3E';
+        // Placeholder image URL
+        const placeholderImage = 'https://placeholder.pics/svg/300/DEDEDE/555555/image';
         
         // Handle image with placeholder fallback and loading state
         // If image is just a filename (no path), prepend /images/
