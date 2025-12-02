@@ -38,6 +38,12 @@
             font-family: 'Roboto', sans-serif;
         }
         
+        /* Prevent image flickering and layout shift */
+        img[loading="lazy"] {
+            min-width: 3rem;
+            min-height: 3rem;
+        }
+        
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;

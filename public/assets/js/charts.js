@@ -540,14 +540,20 @@ function displayFisherfolkList(data) {
         
         const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
         
-        // Handle image with placeholder fallback
-        const imageUrl = fisherfolk.image || '/assets/images/face.png';
+        // Handle image with placeholder fallback and loading state
+        const imageUrl = fisherfolk.image && fisherfolk.image.trim() !== '' ? fisherfolk.image : '/assets/images/face.png';
+        const escapedName = (fisherfolk.full_name || '').replace(/'/g, "\\'");
+        const escapedUrl = imageUrl.replace(/'/g, "\\'");
+        
         const imageHtml = `
-            <img src="${imageUrl}" 
-                 alt="${fisherfolk.full_name}" 
-                 class="w-12 h-12 rounded-full object-cover border-2 border-gray-200 cursor-pointer hover:opacity-75 transition-opacity"
-                 onclick="openImageModal('${imageUrl}', '${fisherfolk.full_name}')"
-                 onerror="this.src='/assets/images/face.png'">`;
+            <div class="relative w-12 h-12">
+                <img src="${imageUrl}" 
+                     alt="${fisherfolk.full_name}" 
+                     class="w-12 h-12 rounded-full object-cover border-2 border-gray-200 cursor-pointer hover:opacity-75 transition-opacity bg-gray-100"
+                     onclick="openImageModal('${escapedUrl}', '${escapedName}')"
+                     onerror="this.onerror=null; this.src='/assets/images/face.png';"
+                     loading="lazy">
+            </div>`;
         
         return `
             <tr class="${rowClass} hover:bg-orange-50 transition-colors">
