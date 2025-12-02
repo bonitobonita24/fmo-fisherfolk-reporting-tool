@@ -4,7 +4,7 @@
  * Returns count of fisherfolk per barangay
  */
 
-require_once __DIR__ . '/../config/env.php';
+require_once __DIR__ . '/../config/database-auto.php';
 
 setJSONHeaders();
 

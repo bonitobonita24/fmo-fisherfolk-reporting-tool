@@ -4,7 +4,7 @@
  * Returns list of all barangays
  */
 
-require_once __DIR__ . '/../config/env.php';
+require_once __DIR__ . '/../config/database-auto.php';
 
 setJSONHeaders();
 

@@ -4,7 +4,7 @@
  * Returns fisherfolk count by activity category
  */
 
-require_once __DIR__ . '/../config/env.php';
+require_once __DIR__ . '/../config/database-auto.php';
 
 setJSONHeaders();
 
