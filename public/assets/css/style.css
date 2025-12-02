@@ -1,0 +1,213 @@
+/**
+ * Custom Styles for Fisherfolk Dashboard
+ * Calapan City FMO - Powerbyte IT Solutions
+ * Theme Colors: Orange (#FFA500) and Blue (#0000FF)
+ */
+
+/* Global Styles */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Navbar Customization */
+.navbar {
+    background: linear-gradient(135deg, #0000FF 0%, #0056b3 100%) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.navbar-brand i {
+    color: #FFA500;
+}
+
+/* Summary Cards */
+.summary-card {
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+}
+
+.summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.summary-card .card-body {
+    padding: 1.5rem;
+}
+
+.summary-card h2 {
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.summary-card h6 {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.summary-icon {
+    opacity: 0.3;
+}
+
+/* Chart Cards */
+.chart-card {
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: none;
+    height: 100%;
+}
+
+.chart-card .card-header {
+    border-bottom: 2px solid #f0f0f0;
+    padding: 1rem 1.25rem;
+}
+
+.chart-card .card-header h5 {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.chart-card .card-header i {
+    margin-right: 8px;
+}
+
+.chart-card .card-body {
+    padding: 1.5rem;
+    position: relative;
+    height: 400px;
+}
+
+.chart-card canvas {
+    max-height: 350px;
+}
+
+/* Responsive Chart Heights */
+@media (max-width: 768px) {
+    .chart-card .card-body {
+        height: 350px;
+    }
+    
+    .chart-card canvas {
+        max-height: 300px;
+    }
+}
+
+/* Custom Colors for Bootstrap */
+.bg-primary {
+    background-color: #0000FF !important;
+}
+
+.text-primary {
+    color: #0000FF !important;
+}
+
+.border-primary {
+    border-color: #0000FF !important;
+}
+
+.bg-secondary {
+    background-color: #FFA500 !important;
+}
+
+.text-secondary {
+    color: #FFA500 !important;
+}
+
+.border-secondary {
+    border-color: #FFA500 !important;
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Footer Info Card */
+.card-body.text-center {
+    padding: 0.75rem;
+}
+
+/* Smooth Transitions */
+* {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Print Styles */
+@media print {
+    .navbar {
+        display: none;
+    }
+    
+    .summary-card,
+    .chart-card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        page-break-inside: avoid;
+    }
+    
+    .chart-card .card-body {
+        height: auto;
+    }
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #0000FF;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #0000CC;
+}
+
+/* Animation for card entrance */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.summary-card,
+.chart-card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+/* Stagger animation for cards */
+.col-md-3:nth-child(1) .summary-card {
+    animation-delay: 0.1s;
+}
+
+.col-md-3:nth-child(2) .summary-card {
+    animation-delay: 0.2s;
+}
+
+.col-md-3:nth-child(3) .summary-card {
+    animation-delay: 0.3s;
+}
+
+.col-md-3:nth-child(4) .summary-card {
+    animation-delay: 0.4s;
+}
