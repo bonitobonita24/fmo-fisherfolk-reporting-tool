@@ -1,20 +1,17 @@
 <?php
 /**
- * Barangay Statistics API
- * Returns count of fisherfolk per barangay
+ * Barangay List API
+ * Returns list of all barangays
  */
 
-require_once __DIR__ . '/../config/database-auto.php';
+require_once __DIR__ . '/../../config/database-auto.php';
 
 setJSONHeaders();
 
 try {
-    $sql = "SELECT 
-                address as barangay,
-                COUNT(*) as count
+    $sql = "SELECT DISTINCT address as barangay
             FROM fisherfolk
-            GROUP BY address
-            ORDER BY count DESC";
+            ORDER BY address ASC";
     
     $results = executeQuery($sql);
     

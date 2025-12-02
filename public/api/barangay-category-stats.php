@@ -4,7 +4,7 @@
  * Returns count of fisherfolk by activity category for a specific barangay
  */
 
-require_once __DIR__ . '/../config/database-auto.php';
+require_once __DIR__ . '/../../config/database-auto.php';
 
 setJSONHeaders();
 

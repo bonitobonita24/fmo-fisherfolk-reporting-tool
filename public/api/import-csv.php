@@ -4,7 +4,7 @@
  * Imports fisherfolk data from CSV
  */
 
-require_once __DIR__ . '/../config/database-auto.php';
+require_once __DIR__ . '/../../config/database-auto.php';
 
 setJSONHeaders();
 
