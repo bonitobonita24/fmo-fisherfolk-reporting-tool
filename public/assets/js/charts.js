@@ -544,13 +544,13 @@ function displayFisherfolkList(data) {
         const placeholderImage = 'https://placeholder.pics/svg/300/DEDEDE/555555/image';
         
         // Handle image with placeholder fallback and loading state
-        // If image is just a filename (no path), prepend /images/
+        // If image is just a filename (no path), prepend /fisherfolk-images/
         let imageUrl = placeholderImage; // default placeholder
         if (fisherfolk.image && fisherfolk.image.trim() !== '') {
             const imgPath = fisherfolk.image.trim();
             // Check if it's just a filename (no / or http)
             if (!imgPath.includes('/') && !imgPath.startsWith('http')) {
-                imageUrl = '/images/' + imgPath;
+                imageUrl = '/fisherfolk-images/' + imgPath;
             } else {
                 imageUrl = imgPath;
             }
