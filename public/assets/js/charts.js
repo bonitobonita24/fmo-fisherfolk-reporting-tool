@@ -540,9 +540,12 @@ function displayFisherfolkList(data) {
         
         const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
         
+        // Reliable placeholder fallback
+        const placeholderImage = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext fill="%236b7280" font-family="Arial" font-size="14" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ENo Photo%3C/text%3E%3C/svg%3E';
+        
         // Handle image with placeholder fallback and loading state
         // If image is just a filename (no path), prepend /images/
-        let imageUrl = '/assets/images/face.png'; // default placeholder
+        let imageUrl = placeholderImage; // default placeholder
         if (fisherfolk.image && fisherfolk.image.trim() !== '') {
             const imgPath = fisherfolk.image.trim();
             // Check if it's just a filename (no / or http)
@@ -562,7 +565,7 @@ function displayFisherfolkList(data) {
                      alt="${fisherfolk.full_name}" 
                      class="w-12 h-12 rounded-full object-cover border-2 border-gray-200 cursor-pointer hover:opacity-75 transition-opacity bg-gray-100"
                      onclick="openImageModal('${escapedUrl}', '${escapedName}')"
-                     onerror="this.onerror=null; this.src='/assets/images/face.png';"
+                     onerror="this.onerror=null; this.src='${placeholderImage}';"
                      loading="lazy">
             </div>`;
         
