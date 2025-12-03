@@ -17,6 +17,89 @@
     
     <?php
     require_once __DIR__ . '/../config/database-auto.php';
+
+    $scriptDir = '/';
+    if (isset($_SERVER['SCRIPT_NAME'])) {
+        $dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+        $scriptDir = ($dir === '' || $dir === '.') ? '/' : rtrim($dir, '/') . '/';
+    }
+
+    $media_base_path = $scriptDir;
+    $placeholder_image = $media_base_path . 'uploads/faceplaceholder.png';
+
+    function resolve_media_path(?string $rawPath, ?string $placeholder = null): string {
+        global $media_base_path, $placeholder_image;
+        if ($placeholder === null) {
+            $placeholder = $placeholder_image;
+        }
+        if ($rawPath === null) {
+            return $placeholder;
+        }
+
+        $path = trim($rawPath);
+        if ($path === '') {
+            return $placeholder;
+        }
+
+        if (preg_match('#^(https?:|data:|blob:|//)#i', $path)) {
+            if (str_starts_with($path, 'http://') && (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')) {
+                try {
+                    $url = parse_url($path);
+                    $host = $_SERVER['HTTP_HOST'] ?? '';
+                    if (!empty($url['host']) && $url['host'] === $host) {
+                        $scheme = 'https://';
+                        $rest = ($url['host'] ?? '')
+                            . (($url['port'] ?? '') ? ':' . $url['port'] : '')
+                            . ($url['path'] ?? '')
+                            . (isset($url['query']) ? '?' . $url['query'] : '')
+                            . (isset($url['fragment']) ? '#' . $url['fragment'] : '');
+                        return $scheme . $rest;
+                    }
+                } catch (Exception $e) {
+                    // ignore and fall through
+                }
+            }
+            return $path;
+        }
+
+        $path = str_replace('\\', '/', $path);
+        $path = preg_replace('#^\./+#', '', $path);
+        while (str_starts_with($path, '../')) {
+            $path = substr($path, 3);
+        }
+
+        $lower = strtolower($path);
+        $uploadsPos = strpos($lower, '/uploads/');
+        if ($uploadsPos !== false) {
+            $path = substr($path, $uploadsPos);
+        } else {
+            $uploadsPos = strpos($lower, 'uploads/');
+            if ($uploadsPos !== false) {
+                $path = substr($path, $uploadsPos);
+                if ($path !== '' && $path[0] !== '/') {
+                    $path = '/' . $path;
+                }
+            }
+        }
+
+        if (str_starts_with($path, '/uploads/')) {
+            return $media_base_path . ltrim($path, '/');
+        }
+
+        if (str_starts_with($path, 'uploads/')) {
+            return $media_base_path . $path;
+        }
+
+        if (!str_contains($path, '/')) {
+            return $media_base_path . 'uploads/' . $path;
+        }
+
+        if (!str_starts_with($path, '/')) {
+            $path = '/' . $path;
+        }
+
+        return $media_base_path . ltrim($path, '/');
+    }
     
     try {
         $conn = getDBConnection();
@@ -40,25 +123,8 @@
             $signaturePath = $row['signature'] ?? '';
             
             // Construct the paths like the JavaScript does
-            $imageUrl = '/uploads/faceplaceholder.png';
-            if (!empty(trim($imagePath))) {
-                $imgPath = trim($imagePath);
-                if (!str_contains($imgPath, '/') && !str_starts_with($imgPath, 'http')) {
-                    $imageUrl = '/uploads/' . $imgPath;
-                } else {
-                    $imageUrl = $imgPath;
-                }
-            }
-            
-            $signatureUrl = '/uploads/faceplaceholder.png';
-            if (!empty(trim($signaturePath))) {
-                $sigPath = trim($signaturePath);
-                if (!str_contains($sigPath, '/') && !str_starts_with($sigPath, 'http')) {
-                    $signatureUrl = '/uploads/' . $sigPath;
-                } else {
-                    $signatureUrl = $sigPath;
-                }
-            }
+            $imageUrl = resolve_media_path($imagePath);
+            $signatureUrl = resolve_media_path($signaturePath);
             
             echo "<tr>";
             echo "<td>" . htmlspecialchars($row['id_number']) . "</td>";

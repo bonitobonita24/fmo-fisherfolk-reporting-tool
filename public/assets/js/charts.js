@@ -8,14 +8,135 @@
 const API_BASE_URL = '/api';
 const THEME_COLORS = {
     primary: '#F28500',    // Tangerine Orange
-    secondary: '#0000FF',  // Blue
+    secondary: '#001399',  // Cadmium Blue
     success: '#10b981',
-    info: '#3b82f6',
+    info: '#373ce2ff',
     warning: '#f59e0b',
     danger: '#ef4444',
     pink: '#ec4899',
     green: '#22c55e'
 };
+
+const APP_BASE_PATH = (() => {
+    if (typeof document === 'undefined') {
+        return '/';
+    }
+
+    const determineFromScript = () => {
+        const current = document.currentScript;
+        if (!current) {
+            return null;
+        }
+        return current.src || null;
+    };
+
+    const determineFromDom = () => {
+        const script = document.querySelector('script[src*="assets/js/charts.js"]');
+        return script ? script.src : null;
+    };
+
+    const scriptSrc = determineFromScript() || determineFromDom();
+    if (scriptSrc) {
+        try {
+            const scriptUrl = new URL(scriptSrc, window.location.origin);
+            const segments = scriptUrl.pathname.split('/');
+            // Remove the trailing assets/js/charts.js parts
+            segments.splice(-3);
+            const basePath = segments.join('/') || '/';
+            return basePath.endsWith('/') ? basePath : `${basePath}/`;
+        } catch (error) {
+            console.warn('Failed to derive base path from script src:', error);
+        }
+    }
+
+    // Fallback: derive from current location
+    const path = window.location.pathname;
+    if (!path) {
+        return '/';
+    }
+    if (path.endsWith('/')) {
+        return path;
+    }
+    const trimmed = path.substring(0, path.lastIndexOf('/') + 1);
+    return trimmed || '/';
+})();
+
+const resolveBasePath = (segment) => {
+    if (!segment) {
+        return APP_BASE_PATH;
+    }
+    if (APP_BASE_PATH.endsWith('/')) {
+        return `${APP_BASE_PATH}${segment}`;
+    }
+    return `${APP_BASE_PATH}/${segment}`;
+};
+
+const PLACEHOLDER_IMAGE = resolveBasePath('uploads/faceplaceholder.png');
+
+// Normalize paths that may include public/ prefixes or Windows separators
+function resolveMediaUrl(rawPath, placeholder = PLACEHOLDER_IMAGE) {
+    if (typeof rawPath !== 'string') {
+        return placeholder;
+    }
+
+    let path = rawPath.trim();
+    if (!path) {
+        return placeholder;
+    }
+
+    if (/^(https?:|data:|blob:|\/\/)/i.test(path)) {
+        if (path.startsWith('http://') && typeof window !== 'undefined' && window.location.protocol === 'https:') {
+            try {
+                const url = new URL(path);
+                if (url.hostname === window.location.hostname) {
+                    url.protocol = 'https:';
+                    return url.toString();
+                }
+            } catch (error) {
+                console.warn('Failed to normalize http URL:', error);
+            }
+        }
+        return path;
+    }
+
+    path = path.replace(/\\/g, '/');
+    path = path.replace(/^\.\/+/, '');
+    while (path.startsWith('../')) {
+        path = path.substring(3);
+    }
+
+    const lowerPath = path.toLowerCase();
+    let uploadsIndex = lowerPath.indexOf('/uploads/');
+    if (uploadsIndex !== -1) {
+        path = path.slice(uploadsIndex);
+    } else {
+        uploadsIndex = lowerPath.indexOf('uploads/');
+        if (uploadsIndex !== -1) {
+            path = path.slice(uploadsIndex);
+            if (!path.startsWith('/')) {
+                path = '/' + path;
+            }
+        }
+    }
+
+    if (path.startsWith('/uploads/')) {
+        return resolveBasePath(path.slice(1));
+    }
+
+    if (path.startsWith('uploads/')) {
+        return resolveBasePath(path);
+    }
+
+    if (!path.includes('/')) {
+        return resolveBasePath(`uploads/${path}`);
+    }
+
+    if (!path.startsWith('/')) {
+        path = '/' + path;
+    }
+
+    return resolveBasePath(path.slice(1));
+}
 
 // Chart.js default configuration
 Chart.defaults.color = '#666';
@@ -540,32 +661,8 @@ function displayFisherfolkList(data) {
         
         const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
         
-        // Placeholder image
-        const placeholderImage = '/uploads/faceplaceholder.png';
-        
-        // Handle image - use filename from database IMAGE column
-        let imageUrl = placeholderImage;
-        if (fisherfolk.image && fisherfolk.image.trim() !== '') {
-            const imgPath = fisherfolk.image.trim();
-            // Check if it's just a filename (no / or http)
-            if (!imgPath.includes('/') && !imgPath.startsWith('http')) {
-                imageUrl = '/uploads/' + imgPath;
-            } else {
-                imageUrl = imgPath;
-            }
-        }
-        
-        // Handle signature - use filename from database SIGNATURE column
-        let signatureUrl = placeholderImage;
-        if (fisherfolk.signature && fisherfolk.signature.trim() !== '') {
-            const sigPath = fisherfolk.signature.trim();
-            // Check if it's just a filename (no / or http)
-            if (!sigPath.includes('/') && !sigPath.startsWith('http')) {
-                signatureUrl = '/uploads/' + sigPath;
-            } else {
-                signatureUrl = sigPath;
-            }
-        }
+        const imageUrl = resolveMediaUrl(fisherfolk.image);
+        const signatureUrl = resolveMediaUrl(fisherfolk.signature);
         
         const escapedName = (fisherfolk.full_name || '').replace(/'/g, "\\'");
         const escapedImageUrl = imageUrl.replace(/'/g, "\\'");
@@ -579,7 +676,7 @@ function displayFisherfolkList(data) {
                          title="Photo"
                          class="w-12 h-12 rounded-full object-cover border-2 border-gray-200 cursor-pointer hover:opacity-75 transition-opacity"
                          onclick="openSingleImageModal('${escapedImageUrl}')"
-                         onerror="this.onerror=null; this.src='${placeholderImage}';"
+                         onerror="this.onerror=null; this.src='${PLACEHOLDER_IMAGE}';"
                          loading="lazy">
                 </div>
                 <div class="relative w-12 h-12">
@@ -588,7 +685,7 @@ function displayFisherfolkList(data) {
                          title="Signature"
                          class="w-12 h-12 rounded object-cover border-2 border-gray-300 cursor-pointer hover:opacity-75 transition-opacity bg-gray-50"
                          onclick="openSingleImageModal('${escapedSigUrl}')"
-                         onerror="this.onerror=null; this.src='${placeholderImage}';"
+                         onerror="this.onerror=null; this.src='${PLACEHOLDER_IMAGE}';"
                          loading="lazy">
                 </div>
             </div>`;
