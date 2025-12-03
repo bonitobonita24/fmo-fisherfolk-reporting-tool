@@ -5,7 +5,7 @@
  */
 
 // Configuration
-const API_BASE_URL = '/api';
+const API_BASE_URL = './api';
 const THEME_COLORS = {
     primary: '#F28500',    // Tangerine Orange
     secondary: '#001399',  // Cadmium Blue
