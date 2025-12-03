@@ -540,12 +540,11 @@ function displayFisherfolkList(data) {
         
         const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
         
-        // Placeholder image URL
-        const placeholderImage = 'https://placeholder.pics/svg/300/DEDEDE/555555/image';
+        // Placeholder image
+        const placeholderImage = '/images/faceplaceholder.png';
         
-        // Handle image with placeholder fallback and loading state
-        // If image is just a filename (no path), prepend /fisherfolk-images/
-        let imageUrl = placeholderImage; // default placeholder
+        // Handle image - use filename from database IMAGE column
+        let imageUrl = placeholderImage;
         if (fisherfolk.image && fisherfolk.image.trim() !== '') {
             const imgPath = fisherfolk.image.trim();
             // Check if it's just a filename (no / or http)
@@ -556,15 +555,28 @@ function displayFisherfolkList(data) {
             }
         }
         
+        // Handle signature - use filename from database SIGNATURE column
+        let signatureUrl = placeholderImage;
+        if (fisherfolk.signature && fisherfolk.signature.trim() !== '') {
+            const sigPath = fisherfolk.signature.trim();
+            // Check if it's just a filename (no / or http)
+            if (!sigPath.includes('/') && !sigPath.startsWith('http')) {
+                signatureUrl = '/fisherfolk-images/' + sigPath;
+            } else {
+                signatureUrl = sigPath;
+            }
+        }
+        
         const escapedName = (fisherfolk.full_name || '').replace(/'/g, "\\'");
-        const escapedUrl = imageUrl.replace(/'/g, "\\'");
+        const escapedImageUrl = imageUrl.replace(/'/g, "\\'");
+        const escapedSigUrl = signatureUrl.replace(/'/g, "\\'");
         
         const imageHtml = `
             <div class="relative w-12 h-12">
                 <img src="${imageUrl}" 
                      alt="${fisherfolk.full_name}" 
                      class="w-12 h-12 rounded-full object-cover border-2 border-gray-200 cursor-pointer hover:opacity-75 transition-opacity bg-gray-100"
-                     onclick="openImageModal('${escapedUrl}', '${escapedName}')"
+                     onclick="openImageModal('${escapedImageUrl}', '${escapedName}', '${escapedSigUrl}')"
                      onerror="this.onerror=null; this.src='${placeholderImage}';"
                      loading="lazy">
             </div>`;
@@ -680,12 +692,26 @@ function setupSearchAndFilters() {
 /**
  * Open image modal
  */
-function openImageModal(imageUrl, name) {
+function openImageModal(imageUrl, name, signatureUrl) {
     const modal = document.getElementById('imageModal');
     const modalImage = document.getElementById('modalImage');
+    const modalSignature = document.getElementById('modalSignature');
     const modalName = document.getElementById('modalName');
     
+    const placeholder = '/images/faceplaceholder.png';
+    
     modalImage.src = imageUrl;
+    modalImage.onerror = function() {
+        this.onerror = null;
+        this.src = placeholder;
+    };
+    
+    modalSignature.src = signatureUrl || placeholder;
+    modalSignature.onerror = function() {
+        this.onerror = null;
+        this.src = placeholder;
+    };
+    
     modalName.textContent = name;
     modal.classList.remove('hidden');
     modal.classList.add('flex');
