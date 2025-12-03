@@ -15,7 +15,7 @@ $path = strtok($requestPath, '?');
 if (strpos($path, '/api/') === 0) {
     // Extract API file name
     $apiFile = substr($path, 5); // Remove '/api/' prefix
-    $apiFilePath = __DIR__ . '/api/' . $apiFile;
+    $apiFilePath = __DIR__ . '/public/api/' . $apiFile;
     
     if (file_exists($apiFilePath)) {
         require $apiFilePath;
