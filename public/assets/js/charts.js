@@ -541,7 +541,7 @@ function displayFisherfolkList(data) {
         const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
         
         // Placeholder image
-        const placeholderImage = '/images/faceplaceholder.png';
+        const placeholderImage = '/uploads/faceplaceholder.png';
         
         // Handle image - use filename from database IMAGE column
         let imageUrl = placeholderImage;
@@ -549,7 +549,7 @@ function displayFisherfolkList(data) {
             const imgPath = fisherfolk.image.trim();
             // Check if it's just a filename (no / or http)
             if (!imgPath.includes('/') && !imgPath.startsWith('http')) {
-                imageUrl = '/fisherfolk-images/' + imgPath;
+                imageUrl = '/uploads/' + imgPath;
             } else {
                 imageUrl = imgPath;
             }
@@ -561,7 +561,7 @@ function displayFisherfolkList(data) {
             const sigPath = fisherfolk.signature.trim();
             // Check if it's just a filename (no / or http)
             if (!sigPath.includes('/') && !sigPath.startsWith('http')) {
-                signatureUrl = '/fisherfolk-images/' + sigPath;
+                signatureUrl = '/uploads/' + sigPath;
             } else {
                 signatureUrl = sigPath;
             }
@@ -572,13 +572,25 @@ function displayFisherfolkList(data) {
         const escapedSigUrl = signatureUrl.replace(/'/g, "\\'");
         
         const imageHtml = `
-            <div class="relative w-12 h-12">
-                <img src="${imageUrl}" 
-                     alt="${fisherfolk.full_name}" 
-                     class="w-12 h-12 rounded-full object-cover border-2 border-gray-200 cursor-pointer hover:opacity-75 transition-opacity bg-gray-100"
-                     onclick="openImageModal('${escapedImageUrl}', '${escapedName}', '${escapedSigUrl}')"
-                     onerror="this.onerror=null; this.src='${placeholderImage}';"
-                     loading="lazy">
+            <div class="flex gap-2">
+                <div class="relative w-12 h-12">
+                    <img src="${imageUrl}" 
+                         alt="" 
+                         title="Photo"
+                         class="w-12 h-12 rounded-full object-cover border-2 border-gray-200 cursor-pointer hover:opacity-75 transition-opacity"
+                         onclick="openSingleImageModal('${escapedImageUrl}')"
+                         onerror="this.onerror=null; this.src='${placeholderImage}';"
+                         loading="lazy">
+                </div>
+                <div class="relative w-12 h-12">
+                    <img src="${signatureUrl}" 
+                         alt="" 
+                         title="Signature"
+                         class="w-12 h-12 rounded object-cover border-2 border-gray-300 cursor-pointer hover:opacity-75 transition-opacity bg-gray-50"
+                         onclick="openSingleImageModal('${escapedSigUrl}')"
+                         onerror="this.onerror=null; this.src='${placeholderImage}';"
+                         loading="lazy">
+                </div>
             </div>`;
         
         return `
@@ -690,29 +702,13 @@ function setupSearchAndFilters() {
 }
 
 /**
- * Open image modal
+ * Open single image modal (just enlarged image)
  */
-function openImageModal(imageUrl, name, signatureUrl) {
+function openSingleImageModal(imageUrl) {
     const modal = document.getElementById('imageModal');
     const modalImage = document.getElementById('modalImage');
-    const modalSignature = document.getElementById('modalSignature');
-    const modalName = document.getElementById('modalName');
-    
-    const placeholder = '/images/faceplaceholder.png';
     
     modalImage.src = imageUrl;
-    modalImage.onerror = function() {
-        this.onerror = null;
-        this.src = placeholder;
-    };
-    
-    modalSignature.src = signatureUrl || placeholder;
-    modalSignature.onerror = function() {
-        this.onerror = null;
-        this.src = placeholder;
-    };
-    
-    modalName.textContent = name;
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     

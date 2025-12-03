@@ -326,24 +326,12 @@
     </footer>
 
     <!-- Image Modal -->
-    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4" onclick="closeImageModal()">
-        <div class="relative max-w-5xl max-h-full" onclick="event.stopPropagation()">
-            <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white hover:text-gray-300 text-3xl font-bold">
-                <i class="fas fa-times"></i>
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-4" onclick="closeImageModal()">
+        <div class="relative max-w-7xl max-h-full" onclick="event.stopPropagation()">
+            <button onclick="closeImageModal()" class="absolute -top-12 right-0 text-white hover:text-gray-300 text-4xl font-bold">
+                <i class="fas fa-times-circle"></i>
             </button>
-            <div class="bg-white rounded-lg p-6">
-                <div id="modalName" class="text-gray-800 text-center text-2xl font-bold mb-4"></div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="text-center">
-                        <p class="text-gray-600 font-semibold mb-2">Photo</p>
-                        <img id="modalImage" src="" alt="Fisherfolk Photo" class="max-w-full max-h-[60vh] rounded-lg shadow-lg mx-auto">
-                    </div>
-                    <div class="text-center">
-                        <p class="text-gray-600 font-semibold mb-2">Signature</p>
-                        <img id="modalSignature" src="" alt="Fisherfolk Signature" class="max-w-full max-h-[60vh] rounded-lg shadow-lg mx-auto bg-gray-50">
-                    </div>
-                </div>
-            </div>
+            <img id="modalImage" src="" alt="" class="max-w-full max-h-[95vh] rounded-lg shadow-2xl">
         </div>
     </div>
 
