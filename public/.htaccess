@@ -45,5 +45,5 @@ AddDefaultCharset UTF-8
 # ErrorDocument 500 /500.html
 
 # Force to HTTPS
-RewriteCond %{HTTPS} off
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+RewriteCond %{HTTP_HOST} ^fisherfolks.powerbyteitsolutions.com [NC]
+RewriteRule ^(.*)$ https://fisherfolks.powerbyteitsolutions.com/$1 [L,R=301]
