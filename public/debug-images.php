@@ -41,7 +41,30 @@
             return $placeholder;
         }
 
-        if (preg_match('#^(https?:|data:|blob:|//)#i', $path)) {
+        if (preg_match('#^https?://#i', $path)) {
+            try {
+                $parts = parse_url($path);
+                $pathname = $parts['path'] ?? '';
+                $uploadsPos = stripos($pathname, '/uploads/');
+                if ($uploadsPos !== false) {
+                    $normalized = substr($pathname, $uploadsPos + 1); // drop leading slash
+                    return $media_base_path . $normalized;
+                }
+
+                $host = $parts['host'] ?? '';
+                $currentHost = $_SERVER['HTTP_HOST'] ?? '';
+                if ($host === $currentHost) {
+                    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+                    $rest = $host
+                        . (isset($parts['port']) ? ':' . $parts['port'] : '')
+                        . ($pathname ?? '')
+                        . (isset($parts['query']) ? '?' . $parts['query'] : '')
+                        . (isset($parts['fragment']) ? '#' . $parts['fragment'] : '');
+                    return $scheme . $rest;
+                }
+            } catch (Exception $e) {
+                // ignore and fall through
+            }
             if (str_starts_with($path, 'http://') && (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')) {
                 try {
                     $url = parse_url($path);
@@ -59,6 +82,10 @@
                     // ignore and fall through
                 }
             }
+            return $path;
+        }
+
+        if (preg_match('#^(data:|blob:|//)#i', $path)) {
             return $path;
         }
 

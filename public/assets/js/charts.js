@@ -84,7 +84,23 @@ function resolveMediaUrl(rawPath, placeholder = PLACEHOLDER_IMAGE) {
         return placeholder;
     }
 
-    if (/^(https?:|data:|blob:|\/\/)/i.test(path)) {
+    if (/^https?:/i.test(path)) {
+        try {
+            const url = new URL(path, window.location.origin);
+            const pathname = url.pathname.replace(/\\/g, '/');
+            const uploadsIdx = pathname.toLowerCase().indexOf('/uploads/');
+            if (uploadsIdx !== -1) {
+                const normalized = pathname.slice(uploadsIdx + 1); // drop leading slash for resolveBasePath
+                return resolveBasePath(normalized);
+            }
+
+            if (url.hostname === window.location.hostname) {
+                url.protocol = window.location.protocol;
+                return url.toString();
+            }
+        } catch (error) {
+            console.warn('Failed to normalize URL path:', error);
+        }
         if (path.startsWith('http://') && typeof window !== 'undefined' && window.location.protocol === 'https:') {
             try {
                 const url = new URL(path);
@@ -96,6 +112,10 @@ function resolveMediaUrl(rawPath, placeholder = PLACEHOLDER_IMAGE) {
                 console.warn('Failed to normalize http URL:', error);
             }
         }
+        return path;
+    }
+
+    if (/^(data:|blob:|\/\/)/i.test(path)) {
         return path;
     }
 
