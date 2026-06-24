@@ -1,0 +1,33 @@
+# VCS / IDE
+.git
+.github
+.gitignore
+.vscode
+.idea
+
+# Claude / tooling artifacts
+.claude
+.playwright-mcp
+
+# Source data & backups — never bake PII into image layers
+masterlist
+*.zip
+data
+public/uploads
+
+# Screenshots / scratch
+*.png
+*.log
+
+# Local PHP dev helpers not needed in the container
+dev-router.php
+run-dev-server.sh
+dev-setup.sh
+install-php.sh
+test-db.sh
+test-db-connection.php
+
+# Python tooling (import is run on the host, not in the web container)
+tools
+__pycache__
+*.pyc

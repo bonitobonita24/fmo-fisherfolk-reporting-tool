@@ -1,0 +1,17 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        PUID: ${PUID:-1000}
+        PGID: ${PGID:-1000}
+    image: fmo-fisherfolk-reporting-tool
+    container_name: fmo-fisherfolk
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      # Persist the SQLite database and uploaded photos/signatures on the host.
+      # These use the already-populated files from the import.
+      - ./data:/var/www/html/data
+      - ./public/uploads:/var/www/html/public/uploads
+    restart: unless-stopped

@@ -49,9 +49,18 @@ composer.lock
 *.sqlite
 *.db
 
-# Uploads (if implementing image upload)
+# Uploads — runtime data: citizen ID photos & signatures (PII). NEVER commit.
+public/uploads/*
+!public/uploads/.gitkeep
 uploads/*
 !uploads/.gitkeep
+
+# Data directory (SQLite DB lives here)
+data/
+
+# Test/session artifacts
+.playwright-mcp/
+dashboard*.png
 
 # Cache
 cache/

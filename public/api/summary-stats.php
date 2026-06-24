@@ -30,7 +30,7 @@ try {
     $barangays = $barangayResult[0]['count'];
     
     // Recently registered (last 30 days)
-    $recentSql = "SELECT COUNT(*) as count FROM fisherfolk WHERE date_registered >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+    $recentSql = "SELECT COUNT(*) as count FROM fisherfolk WHERE date_registered >= datetime('now', '-30 days')";
     $recentResult = executeQuery($recentSql);
     $recent = $recentResult[0]['count'];
     
