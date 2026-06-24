@@ -81,6 +81,10 @@ $currentUser = $_SESSION['username'] ?? '';
                     <i class="fas fa-fish text-white"></i> Fisherfolk ID Database - Calapan City FMO
                 </span>
                 <div class="flex items-center gap-4">
+                    <a href="manage-data.php"
+                       class="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors">
+                        <i class="fas fa-database"></i> <span class="hidden sm:inline">Manage Data</span>
+                    </a>
                     <span class="text-white text-sm hidden sm:inline">
                         <i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($currentUser); ?>
                     </span>
