@@ -98,7 +98,7 @@ in Docker, or `php -S` locally. No package manager.
 - **`main` is the canonical branch** for the FMO app (2026-06-24). It previously held an unrelated
   Laravel project, which was **force-replaced** (its history is off `main`; recoverable from the old
   SHA `a25d821` short-term if needed). Work on `main`; push to `main` builds + deploys (see §3b).
-- `legacy-php-sqlite-docker` still exists as an identical copy (redundant now — safe to delete).
+- `legacy-php-sqlite-docker` was deleted 2026-06-24 (it was fully merged into `main`). `main` is the only branch.
 - Docker Hub **`bonitobonita24/fmo-fisherfolk-reporting-tool:latest`** includes login + export.
   Data is NOT baked into the image (bind-mounted) → DB record additions need no re-push.
 
