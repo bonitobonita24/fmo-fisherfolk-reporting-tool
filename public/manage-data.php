@@ -72,16 +72,10 @@ $currentUser = $_SESSION['username'] ?? '';
                 Columns are detected by their header names. The file is parsed in your browser; nothing is saved until you click <em>Import</em>.
             </p>
 
-            <div class="flex flex-wrap items-center gap-4 mb-4 text-sm">
-                <div>
-                    <span class="font-semibold mr-2">Date format in file:</span>
-                    <label class="mr-3"><input type="radio" name="dateFmt" value="mdy" checked> MM/DD/YYYY <span class="text-gray-400">(FMO masterlist)</span></label>
-                    <label><input type="radio" name="dateFmt" value="dmy"> DD/MM/YYYY <span class="text-gray-400">(template)</span></label>
-                </div>
-                <label class="inline-flex items-center gap-2 ml-auto">
-                    <input type="checkbox" id="updateExisting" class="w-4 h-4">
-                    <span>Update records that already exist (otherwise they're skipped)</span>
-                </label>
+            <div class="bg-gray-50 border rounded-lg p-3 mb-4 text-sm text-gray-600">
+                <p class="mb-1"><i class="fas fa-calendar-day text-accent mr-1"></i> Dates of birth are read as <strong>MM/DD/YYYY</strong> (the FMO format).</p>
+                <p><i class="fas fa-rotate text-accent mr-1"></i> New IDs are added; an existing ID with the <strong>same name</strong> is updated in place.
+                   An existing ID that the file gives a <strong>different name</strong> is reported as a conflict and left untouched &mdash; all other rows still go through.</p>
             </div>
 
             <div id="dataDrop" class="drop-zone rounded-lg p-10 text-center cursor-pointer bg-gray-50">
@@ -231,7 +225,7 @@ const ROMAN = new Set(['i','ii','iii','iv','v','vi','vii','viii','ix','x']);
 
 function pad(n){ return String(n).padStart(2,'0'); }
 
-function normDob(value, fmt) {
+function normDob(value) {
     if (value === null || value === undefined || value === '') return null;
     if (value instanceof Date && !isNaN(value)) {
         return value.getFullYear() + '-' + pad(value.getMonth()+1) + '-' + pad(value.getDate());
@@ -241,10 +235,8 @@ function normDob(value, fmt) {
     if (m) {
         let a = parseInt(m[1],10), b = parseInt(m[2],10), y = parseInt(m[3],10);
         if (y < 100) y += (y > 30 ? 1900 : 2000);
-        let mm, dd;
-        if (a > 12 && b <= 12) { dd = a; mm = b; }            // unambiguous DD/MM
-        else if (b > 12 && a <= 12) { mm = a; dd = b; }       // unambiguous MM/DD
-        else { if (fmt === 'dmy') { dd = a; mm = b; } else { mm = a; dd = b; } }
+        let mm = a, dd = b;                          // MM/DD/YYYY (FMO format)
+        if (mm > 12 && dd <= 12) { mm = b; dd = a; } // month can't exceed 12: only-valid fallback
         if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
         return y + '-' + pad(mm) + '-' + pad(dd);
     }
@@ -309,12 +301,12 @@ function buildColIndex(headerRow) {
     return idx;
 }
 
-function normalizeRow(arr, idx, fmt) {
+function normalizeRow(arr, idx) {
     const get = k => (k in idx) ? arr[idx[k]] : undefined;
     const row = {
         id_number: get('id_number') != null ? String(get('id_number')).trim() : '',
         full_name: get('full_name') != null ? String(get('full_name')).trim() : '',
-        date_of_birth: normDob(get('date_of_birth'), fmt),
+        date_of_birth: normDob(get('date_of_birth')),
         address: normBarangay(get('address')),
         sex: normSex(get('sex')),
         image: get('image') != null && String(get('image')).trim() !== '' ? String(get('image')).trim() : null,
@@ -333,7 +325,6 @@ function normalizeRow(arr, idx, fmt) {
 }
 
 function handleDataFile(file) {
-    const fmt = document.querySelector('input[name="dateFmt"]:checked').value;
     const reader = new FileReader();
     reader.onload = (e) => {
         let wb;
@@ -359,7 +350,7 @@ function handleDataFile(file) {
         for (let i = 1; i < aoa.length; i++) {
             const arr = aoa[i];
             if (!arr || arr.every(c => c === '' || c == null)) continue;
-            const r = normalizeRow(arr, idx, fmt);
+            const r = normalizeRow(arr, idx);
             if (!r.id_number && !r.full_name) continue;
             parsedRows.push(r);
         }
@@ -387,24 +378,42 @@ function renderDataPreview() {
 
 document.getElementById('dataImportBtn').addEventListener('click', async () => {
     if (!parsedRows.length) { alert('Nothing to import.'); return; }
-    const updateExisting = document.getElementById('updateExisting').checked;
-    if (!confirm(`Import ${parsedRows.length} records?` + (updateExisting ? '\nExisting records WILL be updated.' : '\nExisting records will be skipped.'))) return;
+    if (!confirm(`Import ${parsedRows.length} records?\n\nNew IDs are added and existing IDs with a matching name are updated. An existing ID with a different name will be flagged as a conflict and left unchanged.`)) return;
     const btn = document.getElementById('dataImportBtn');
     btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Importing…';
     try {
         const res = await fetch('/api/bulk-import-data.php', {
             method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ data: parsedRows, update_existing: updateExisting })
+            body: JSON.stringify({ data: parsedRows })
         });
         const j = await res.json();
         const box = document.getElementById('dataResult');
         box.classList.remove('hidden');
         if (j.success) {
+            const conflicts = j.conflicts || [];
             box.innerHTML = `<div class="bg-green-50 border border-green-300 text-green-800 rounded p-4">
                 <p class="font-bold"><i class="fas fa-check-circle"></i> Import complete</p>
-                <p>Inserted: <strong>${j.inserted}</strong> &middot; Updated: <strong>${j.updated}</strong> &middot; Skipped: <strong>${j.skipped}</strong> (of ${j.total})</p>
+                <p>Inserted: <strong>${j.inserted}</strong> &middot; Updated: <strong>${j.updated}</strong> &middot; Conflicts: <strong>${conflicts.length}</strong> &middot; Skipped: <strong>${j.skipped}</strong> (of ${j.total})</p>
                 ${j.errors && j.errors.length ? `<details class="mt-2"><summary>${j.errors.length} warning(s)</summary><ul class="list-disc ml-5 text-sm">${j.errors.slice(0,20).map(e=>`<li>${esc(e)}</li>`).join('')}</ul></details>` : ''}
-            </div>`;
+            </div>
+            ${conflicts.length ? `<div class="bg-red-50 border border-red-300 text-red-800 rounded p-4 mt-3">
+                <p class="font-bold"><i class="fas fa-triangle-exclamation"></i> ${conflicts.length} duplicate ID number(s) with a different name &mdash; not changed</p>
+                <p class="text-sm mb-2">These IDs already exist in the app under a different name. Please verify and resolve manually.</p>
+                <div class="overflow-auto max-h-72 border rounded bg-white">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-red-100 sticky top-0"><tr>
+                            <th class="px-3 py-1 text-left">ID number</th>
+                            <th class="px-3 py-1 text-left">Name in app (kept)</th>
+                            <th class="px-3 py-1 text-left">Name in file (ignored)</th>
+                        </tr></thead>
+                        <tbody>${conflicts.map(c=>`<tr class="border-t">
+                            <td class="px-3 py-1 font-mono">${esc(c.id_number)}</td>
+                            <td class="px-3 py-1">${esc(c.existing_name)}</td>
+                            <td class="px-3 py-1">${esc(c.incoming_name)}</td>
+                        </tr>`).join('')}</tbody>
+                    </table>
+                </div>
+            </div>` : ''}`;
             document.getElementById('dataPreview').classList.add('hidden');
         } else {
             box.innerHTML = `<div class="bg-red-50 border border-red-300 text-red-800 rounded p-4"><i class="fas fa-times-circle"></i> ${esc(j.error)}</div>`;

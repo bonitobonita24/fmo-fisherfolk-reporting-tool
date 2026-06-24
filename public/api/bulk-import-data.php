@@ -10,10 +10,13 @@
  *     "data": [ { id_number, full_name, date_of_birth, address, sex, image,
  *                 signature, rsbsa, contact_number, boat_owneroperator,
  *                 capture_fishing, gleaning, vendor, fish_processing,
- *                 aquaculture }, ... ],
- *     "update_existing": true|false   // when true, existing IDs are updated;
- *                                      // otherwise they are skipped.
+ *                 aquaculture }, ... ]
  *   }
+ *
+ * Per-row outcome (no flags):
+ *   - new id_number                       -> insert
+ *   - existing id_number, SAME name       -> update in place
+ *   - existing id_number, DIFFERENT name  -> reported as a conflict, untouched
  *
  * Note: image / signature here are the *filenames* declared in the source
  * sheet. The actual image files are uploaded separately (upload-assets.php).
@@ -48,6 +51,20 @@ const FLAG_FIELDS = [
     'vendor', 'fish_processing', 'aquaculture',
 ];
 
+/**
+ * Compare two names for "same person" purposes: case-insensitive, with
+ * surrounding/duplicate whitespace and trailing punctuation normalized away.
+ */
+function names_match($a, $b) {
+    $norm = function ($s) {
+        $s = mb_strtolower(trim((string) $s));
+        $s = preg_replace('/\s+/', ' ', $s);   // collapse internal whitespace
+        $s = preg_replace('/[.,]+$/', '', $s);  // drop trailing . or ,
+        return trim($s);
+    };
+    return $norm($a) === $norm($b);
+}
+
 try {
     $input = file_get_contents('php://input');
     $req = json_decode($input, true);
@@ -56,7 +73,6 @@ try {
         throw new Exception('Invalid request data');
     }
     $rows = $req['data'];
-    $updateExisting = !empty($req['update_existing']);
 
     $conn = getDBConnection();
 
@@ -78,9 +94,9 @@ try {
         ' WHERE id_number = :id_number';
     $updateStmt = $conn->prepare($updateSql);
 
-    $checkStmt = $conn->prepare('SELECT COUNT(*) FROM fisherfolk WHERE id_number = ?');
+    $checkStmt = $conn->prepare('SELECT full_name FROM fisherfolk WHERE id_number = ?');
 
-    $inserted = 0; $updated = 0; $skipped = 0; $errors = [];
+    $inserted = 0; $updated = 0; $skipped = 0; $errors = []; $conflicts = [];
 
     $conn->beginTransaction();
 
@@ -108,18 +124,24 @@ try {
             }
 
             $checkStmt->execute([$id]);
-            $exists = (int) $checkStmt->fetchColumn() > 0;
+            $existingName = $checkStmt->fetchColumn(); // false when the ID is new
 
-            if ($exists) {
-                if ($updateExisting) {
-                    $updateStmt->execute($params);
-                    $updated++;
-                } else {
-                    $skipped++;
-                }
-            } else {
+            if ($existingName === false) {
+                // New ID — insert.
                 $insertStmt->execute($params);
                 $inserted++;
+            } elseif (names_match($existingName, $name)) {
+                // Same ID + same person — update in place.
+                $updateStmt->execute($params);
+                $updated++;
+            } else {
+                // Same ID, but the file names a DIFFERENT person — do NOT touch
+                // the record; surface it so the office can resolve the clash.
+                $conflicts[] = [
+                    'id_number'     => $id,
+                    'existing_name' => $existingName,
+                    'incoming_name' => $name,
+                ];
             }
         } catch (PDOException $e) {
             $errors[] = "Row $line: " . $e->getMessage();
@@ -130,12 +152,13 @@ try {
     $conn->commit();
 
     echo json_encode([
-        'success'  => true,
-        'inserted' => $inserted,
-        'updated'  => $updated,
-        'skipped'  => $skipped,
-        'total'    => count($rows),
-        'errors'   => $errors,
+        'success'   => true,
+        'inserted'  => $inserted,
+        'updated'   => $updated,
+        'skipped'   => $skipped,
+        'conflicts' => $conflicts,
+        'total'     => count($rows),
+        'errors'    => $errors,
     ]);
 
 } catch (Exception $e) {
