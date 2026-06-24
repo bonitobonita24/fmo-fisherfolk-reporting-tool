@@ -15,6 +15,9 @@ masterlist
 data
 public/uploads
 
+# Login credential (provided at runtime via bind mount / env, never in the image)
+config/auth.php
+
 # Screenshots / scratch
 *.png
 *.log
@@ -31,3 +34,6 @@ test-db-connection.php
 tools
 __pycache__
 *.pyc
+
+# ...but DO ship the generic "No Image" placeholder (not PII)
+!public/uploads/faceplaceholder.png

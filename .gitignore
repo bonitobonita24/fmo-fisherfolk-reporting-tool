@@ -52,6 +52,7 @@ composer.lock
 # Uploads — runtime data: citizen ID photos & signatures (PII). NEVER commit.
 public/uploads/*
 !public/uploads/.gitkeep
+!public/uploads/faceplaceholder.png
 uploads/*
 !uploads/.gitkeep
 
@@ -69,3 +70,4 @@ cache/
 # Sensitive config (create local copies)
 config/database.local.php
 config/local.php
+config/auth.php

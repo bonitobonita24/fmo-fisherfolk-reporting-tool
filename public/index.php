@@ -1,3 +1,8 @@
+<?php
+require_once __DIR__ . '/../config/auth-functions.php';
+require_page_auth();
+$currentUser = $_SESSION['username'] ?? '';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -75,9 +80,15 @@
                 <span class="text-white text-xl font-bold">
                     <i class="fas fa-fish text-white"></i> Fisherfolk ID Database - Calapan City FMO
                 </span>
-                <span class="text-white text-sm">
-                    Powered by Powerbyte IT Solutions
-                </span>
+                <div class="flex items-center gap-4">
+                    <span class="text-white text-sm hidden sm:inline">
+                        <i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($currentUser); ?>
+                    </span>
+                    <a href="logout.php"
+                       class="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors">
+                        <i class="fas fa-right-from-bracket"></i> Logout
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
@@ -272,11 +283,21 @@
                     </select>
                 </div>
                 
-                <!-- Results Count -->
-                <div class="mb-3">
+                <!-- Results Count + Export -->
+                <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                     <small class="text-gray-500">
                         Showing <strong id="resultCount" class="text-primary">0</strong> fisherfolk
                     </small>
+                    <div class="flex gap-2">
+                        <button type="button" id="exportPdfBtn"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors disabled:opacity-50">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </button>
+                        <button type="button" id="exportExcelBtn"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors disabled:opacity-50">
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- Table -->
@@ -335,7 +356,13 @@
         </div>
     </div>
 
+    <!-- Export libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <!-- Custom JS -->
     <script src="assets/js/charts.js"></script>
+    <script src="assets/js/export.js"></script>
 </body>
 </html>

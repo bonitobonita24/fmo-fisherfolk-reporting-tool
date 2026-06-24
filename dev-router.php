@@ -33,7 +33,7 @@ if (strpos($path, '/api/') === 0) {
 
 // Serve static files from public directory
 if ($path === '/' || $path === '') {
-    require __DIR__ . '/public/index.html';
+    require __DIR__ . '/public/index.php';
     return true;
 }
 
@@ -55,9 +55,9 @@ if (preg_match('/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/', $pat
 $publicPath = __DIR__ . '/public' . $path;
 if (file_exists($publicPath)) {
     if (is_dir($publicPath)) {
-        // Try index.html in directory
-        if (file_exists($publicPath . '/index.html')) {
-            require $publicPath . '/index.html';
+        // Try index.php in directory
+        if (file_exists($publicPath . '/index.php')) {
+            require $publicPath . '/index.php';
             return true;
         }
     } else {

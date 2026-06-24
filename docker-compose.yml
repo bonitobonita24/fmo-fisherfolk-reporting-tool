@@ -8,10 +8,12 @@ services:
     image: fmo-fisherfolk-reporting-tool
     container_name: fmo-fisherfolk
     ports:
-      - "${APP_PORT:-8080}:80"
+      - "${APP_PORT:-61862}:80"
     volumes:
       # Persist the SQLite database and uploaded photos/signatures on the host.
       # These use the already-populated files from the import.
       - ./data:/var/www/html/data
       - ./public/uploads:/var/www/html/public/uploads
+      # Login credential (kept out of the image; lives only on the host)
+      - ./config/auth.php:/var/www/html/config/auth.php:ro
     restart: unless-stopped
