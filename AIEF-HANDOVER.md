@@ -9,7 +9,7 @@
 Read-only dashboard for the Calapan City Fisheries Management Office (FMO): registered
 fisherfolk with stats (per-barangay, gender, age, activity category) and a
 searchable/filterable list with photos & signatures. Built by Powerbyte IT Solutions.
-**2,976 fisherfolk** across **51 barangay labels**.
+**3,003 fisherfolk** (2,976 initial + 27 from the EditingPC batch) across ~51 barangay labels.
 
 ## 2. Stack (current)
 Vanilla **PHP 8.3** (no framework, no composer) + **SQLite** (PDO) + plain HTML/JS
@@ -44,6 +44,11 @@ in Docker, or `php -S` locally. No package manager.
 7. **Login.** Session-based single-user auth. `public/login.php`, `public/logout.php`, guard logic
    in `config/auth-functions.php`. `index.html`→`index.php` (page-gated); all 9 data APIs call
    `require_api_auth()` (401 if unauthenticated). Logout button + username in the nav.
+8. **Incremental import.** `tools/import_incremental.py` adds only NEW IDs from a partial
+   masterlist and links assets by ID across masterlist/, public/uploads/, and the backup zip.
+   Applied to `0001. Complete Masterlist - EditingPC.xlsx`: 27 new inserted (4 already existed),
+   26 photos + 27 sigs linked. **DB now 3,003** (photos 2,980, sigs 2,992). DB backed up first to
+   `data/fisherfolk.sqlite.bak-before-editingpc`.
 
 ## 4. How to run
 - **Docker (primary):** `PUID=$(id -u) PGID=$(id -g) docker compose up -d --build` →
@@ -68,14 +73,15 @@ in Docker, or `php -S` locally. No package manager.
 ## 6. Git state ⚠️
 - **Remote `origin/main` is a DIFFERENT project** — a Laravel rewrite with unrelated history.
   Do NOT force-push over it.
-- Local branch `main` holds this vanilla-PHP work. Commit `6daa901` (SQLite + importer + Docker)
-  was pushed to branch **`legacy-php-sqlite-docker`** on origin.
-- **Uncommitted at handover:** login, Excel/PDF export, placeholder fix, port change, API auth
-  gating, `index.html`→`index.php` rename. The Docker Hub image predates login/export — re-push
-  after rebuild if it should include them.
+- All vanilla-PHP work lives on branch **`legacy-php-sqlite-docker`** (pushed). Use it as the
+  working branch; local `main` trails behind.
+- Docker Hub **`bonitobonita24/fmo-fisherfolk-reporting-tool:latest`** includes login + export.
+  Data is NOT baked into the image (bind-mounted) → DB record additions need no re-push.
 
 ## 7. Open TODOs / known issues
-- Commit + push the uncommitted login/export/placeholder work; re-push the Docker Hub image.
+- Archive/clear `masterlist/0001. Complete Masterlist - EditingPC.xlsx` (still present after import).
+- Typo ID imported as-is: `MR-CL-0034-55-2017` (MORENO, ARMANDO CUASAY) — likely `MR-CL-003455-2017`.
+  OSORIO, SALVACION SAMONTE (`MR-CL-003635-2017`) has a signature but no photo.
 - `deploy-production.sh` still targets MySQL — out of sync with the SQLite switch; update before
   any Hostinger deploy.
 - 22 records have no photo, 11 no signature (source gap) — see `data/missing_assets_report.csv`.
@@ -90,7 +96,8 @@ in Docker, or `php -S` locally. No package manager.
 
 ## 8. Key files
 `config/database-auto.php` (SQLite conn) · `config/auth.php` (creds, gitignored) ·
-`config/auth-functions.php` (auth logic) · `sql/schema.sqlite.sql` · `tools/import_masterlist.py` ·
+`config/auth-functions.php` (auth logic) · `sql/schema.sqlite.sql` ·
+`tools/import_masterlist.py` (full import) · `tools/import_incremental.py` (incremental batch) ·
 `public/index.php` (gated dashboard) · `public/login.php` · `public/logout.php` ·
 `public/api/*.php` (gated JSON APIs) · `public/assets/js/charts.js` (dashboard JS) ·
 `public/assets/js/export.js` (PDF/Excel) · `Dockerfile` · `docker-compose.yml` ·

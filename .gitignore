@@ -59,6 +59,11 @@ uploads/*
 # Data directory (SQLite DB lives here)
 data/
 
+# Masterlist source files (xlsx + photos/signatures = PII) and python cache
+masterlist/
+__pycache__/
+*.pyc
+
 # Test/session artifacts
 .playwright-mcp/
 dashboard*.png
