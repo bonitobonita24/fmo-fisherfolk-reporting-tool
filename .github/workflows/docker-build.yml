@@ -2,7 +2,7 @@ name: Build and push Docker image
 
 on:
   push:
-    branches: [legacy-php-sqlite-docker]
+    branches: [main]
     paths:
       - 'Dockerfile'
       - 'docker/**'
@@ -38,3 +38,18 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/fmo-fisherfolk-reporting-tool:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # Instant redeploy: tell Komodo to pull the new image + redeploy the stack.
+      # (Komodo's git-listener webhook doesn't fire for files-on-host stacks, and
+      #  its registry poll is hourly, so we trigger the deploy via the Komodo API.)
+      - name: Trigger Komodo redeploy
+        env:
+          KOMODO_API_KEY: ${{ secrets.KOMODO_API_KEY }}
+          KOMODO_API_SECRET: ${{ secrets.KOMODO_API_SECRET }}
+        run: |
+          curl -fsS -X POST https://kmd.powerbyte.app/execute \
+            -H "Content-Type: application/json" \
+            -H "User-Agent: Mozilla/5.0 (github-actions) Chrome/120" \
+            -H "X-Api-Key: $KOMODO_API_KEY" \
+            -H "X-Api-Secret: $KOMODO_API_SECRET" \
+            -d '{"type":"DeployStack","params":{"stack":"fmo-fisherfolk"}}'
