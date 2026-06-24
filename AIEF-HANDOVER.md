@@ -79,7 +79,13 @@ in Docker, or `php -S` locally. No package manager.
   Data is NOT baked into the image (bind-mounted) → DB record additions need no re-push.
 
 ## 7. Open TODOs / known issues
-- Archive/clear `masterlist/0001. Complete Masterlist - EditingPC.xlsx` (still present after import).
+- ⚠️ **UNRESOLVED ID conflict `MR-CL-000534-2015`** (needs FMO decision): two **different people**
+  share this ID — the person currently in the DB (from the original masterlist) and a different
+  person in the EditingPC batch (different name, barangay, sex, DOB, RSBSA). The EditingPC row was
+  NOT applied (incremental importer skips existing IDs), so the DB keeps the original. FMO must
+  decide who rightfully owns the ID (and whether the other needs a new one), then update the DB
+  manually. Personal details intentionally omitted here (public repo) — see the private local
+  Claude handover memory and `~/UbuntuDevFiles/FMO-CalapanCity/masterlist-EditingPC-backup-2026-06-24.zip`.
 - Typo ID imported as-is: `MR-CL-0034-55-2017` (MORENO, ARMANDO CUASAY) — likely `MR-CL-003455-2017`.
   OSORIO, SALVACION SAMONTE (`MR-CL-003635-2017`) has a signature but no photo.
 - `deploy-production.sh` still targets MySQL — out of sync with the SQLite switch; update before
