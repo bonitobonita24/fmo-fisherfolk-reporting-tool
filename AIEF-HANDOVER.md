@@ -60,10 +60,14 @@ in Docker, or `php -S` locally. No package manager.
   credential mounted as a file). Data lives on the host, not in the image.
 - **⚠️ Gotcha:** never put the bcrypt hash in `.env` — docker compose treats `$` as variable refs and
   blanks it. Mount `auth.php` as a file instead (or escape `$`→`$$`).
-- **CI:** `.github/workflows/docker-build.yml` builds + pushes the image to Docker Hub on push to
-  `legacy-php-sqlite-docker` (repo secrets `DOCKERHUB_USERNAME`/`DOCKERHUB_TOKEN`). Healthcheck
-  probes `login.php` (data APIs require auth).
-- **Redeploy after a new image:** `ssh … root@72.62.74.203 'cd /etc/komodo/stacks/fmo-fisherfolk &&
+- **CI/CD (auto):** push to **`main`** → `.github/workflows/docker-build.yml` builds + pushes the
+  image to Docker Hub (`DOCKERHUB_USERNAME`/`DOCKERHUB_TOKEN`), then **calls the Komodo API to
+  redeploy the stack instantly** (`KOMODO_API_KEY`/`KOMODO_API_SECRET` repo secrets). So a normal
+  `git push` to main is the whole deploy. Healthcheck probes `login.php`.
+  - Note: Komodo's git-listener webhook does NOT fire for files-on-host stacks (tested), and its
+    registry poll is **hourly** (`KOMODO_RESOURCE_POLL_INTERVAL=1-hr`), so CI triggers the deploy
+    via the API rather than a webhook.
+- **Manual redeploy fallback:** `ssh … root@72.62.74.203 'cd /etc/komodo/stacks/fmo-fisherfolk &&
   docker compose pull && docker compose up -d'`.
 
 ## 4. How to run
@@ -84,13 +88,17 @@ in Docker, or `php -S` locally. No package manager.
   `AUTH_USERNAME` / `AUTH_PASSWORD_HASH` env vars.
 - **Docker Hub PAT** was shared in plaintext earlier → **rotate it** at hub.docker.com and store
   the new one in the Server-Setups SOPS vault, not in the repo.
+- **GitHub Actions repo secrets:** `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, `KOMODO_API_KEY`,
+  `KOMODO_API_SECRET` (all sourced from `Server-Setups/Powerbyte-Hostinger/secrets/`). The Komodo
+  API key is admin-scoped — the build job runs only on push to `main` (not fork PRs), so secrets
+  aren't exposed, but rotate if repo access changes.
 - DB holds PII (names, contacts, photos, signatures): keep `data/` and `public/uploads/` out of git.
 
-## 6. Git state ⚠️
-- **Remote `origin/main` is a DIFFERENT project** — a Laravel rewrite with unrelated history.
-  Do NOT force-push over it.
-- All vanilla-PHP work lives on branch **`legacy-php-sqlite-docker`** (pushed). Use it as the
-  working branch; local `main` trails behind.
+## 6. Git state
+- **`main` is the canonical branch** for the FMO app (2026-06-24). It previously held an unrelated
+  Laravel project, which was **force-replaced** (its history is off `main`; recoverable from the old
+  SHA `a25d821` short-term if needed). Work on `main`; push to `main` builds + deploys (see §3b).
+- `legacy-php-sqlite-docker` still exists as an identical copy (redundant now — safe to delete).
 - Docker Hub **`bonitobonita24/fmo-fisherfolk-reporting-tool:latest`** includes login + export.
   Data is NOT baked into the image (bind-mounted) → DB record additions need no re-push.
 
