@@ -37,7 +37,8 @@ COPY --chown=www-data:www-data . /var/www/html
 RUN mkdir -p data public/uploads \
  && chown -R www-data:www-data data public/uploads
 
+# Health: the public login page (data APIs require auth, so don't probe them)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD php -r '$c=@file_get_contents("http://localhost/api/summary-stats.php"); exit(strpos($c,"success")!==false?0:1);' || exit 1
+  CMD php -r '$c=@file_get_contents("http://localhost/login.php"); exit($c && strpos($c,"Sign in")!==false?0:1);' || exit 1
 
 EXPOSE 80
