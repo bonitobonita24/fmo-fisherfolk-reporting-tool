@@ -77,6 +77,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
         </div>
         <p class="text-center text-xs text-gray-400 mt-4">Fisherfolk ID Database &middot; Authorized users only</p>
+        <p class="text-center text-xs text-gray-400 mt-1">
+            Powered by:
+            <a href="https://powerbyteitsolutions.com/" target="_blank" rel="noopener noreferrer"
+               class="font-semibold text-primary hover:underline">Powerbyte IT Solutions</a>
+            &middot; &copy; <?php echo date('Y'); ?> Powerbyte IT Solutions. All rights reserved.
+        </p>
     </div>
 </body>
 </html>

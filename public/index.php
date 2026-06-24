@@ -339,9 +339,15 @@ $currentUser = $_SESSION['username'] ?? '';
     <footer class="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-primary to-orange-600 text-white py-3 shadow-lg z-40">
         <div class="container mx-auto px-4">
             <div class="text-center text-sm">
-                <i class="fas fa-info-circle text-white"></i> 
-                Data is updated in real-time from the Fisherfolk ID Database. 
+                <i class="fas fa-info-circle text-white"></i>
+                Data is updated in real-time from the Fisherfolk ID Database.
                 Last refreshed: <span id="last-updated" class="font-semibold">--</span>
+            </div>
+            <div class="text-center text-xs text-white/90 mt-1">
+                Powered by:
+                <a href="https://powerbyteitsolutions.com/" target="_blank" rel="noopener noreferrer"
+                   class="font-semibold underline hover:text-white">Powerbyte IT Solutions</a>
+                &nbsp;&middot;&nbsp; &copy; <?php echo date('Y'); ?> Powerbyte IT Solutions. All rights reserved.
             </div>
         </div>
     </footer>
