@@ -50,6 +50,22 @@ in Docker, or `php -S` locally. No package manager.
    26 photos + 27 sigs linked. **DB now 3,003** (photos 2,980, sigs 2,992). DB backed up first to
    `data/fisherfolk.sqlite.bak-before-editingpc`.
 
+## 3b. Production deployment (live 2026-06-24)
+- **Live URL:** https://fmo.powerbyte.app (login user `kaye`; password not stored here).
+- **Host:** Powerbyte VPS `72.62.74.203`, fronted by **Traefik** (Let's Encrypt, `proxy` network),
+  orchestrated by **Komodo**. SSH key `~/.ssh/powerbyte_hostinger`.
+- **DNS:** Cloudflare A `fmo.powerbyte.app → 72.62.74.203` (proxied).
+- **VPS stack:** `/etc/komodo/stacks/fmo-fisherfolk/` — `docker-compose.yml` (single `app` service +
+  Traefik labels), `.env`, bind-mounted `data/` (SQLite) + `uploads/` (photos) + `auth.php` (bcrypt
+  credential mounted as a file). Data lives on the host, not in the image.
+- **⚠️ Gotcha:** never put the bcrypt hash in `.env` — docker compose treats `$` as variable refs and
+  blanks it. Mount `auth.php` as a file instead (or escape `$`→`$$`).
+- **CI:** `.github/workflows/docker-build.yml` builds + pushes the image to Docker Hub on push to
+  `legacy-php-sqlite-docker` (repo secrets `DOCKERHUB_USERNAME`/`DOCKERHUB_TOKEN`). Healthcheck
+  probes `login.php` (data APIs require auth).
+- **Redeploy after a new image:** `ssh … root@72.62.74.203 'cd /etc/komodo/stacks/fmo-fisherfolk &&
+  docker compose pull && docker compose up -d'`.
+
 ## 4. How to run
 - **Docker (primary):** `PUID=$(id -u) PGID=$(id -g) docker compose up -d --build` →
   http://localhost:61862 . Container `fmo-fisherfolk`. App code is baked into the image (only
