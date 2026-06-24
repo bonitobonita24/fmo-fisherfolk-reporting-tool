@@ -5,11 +5,11 @@
  * Accepts a batch of image files (multipart form field "files[]") and matches
  * each file by its filename against the fisherfolk.image / fisherfolk.signature
  * columns (the filenames declared in the masterlist). Matching files are saved
- * into public/uploads/ under the filename the DB already stores, overwriting
+ * into public/uploads/ under a hardened single-extension filename, overwriting
  * any existing file (replacement).
  *
- * Files that don't match any record are still saved to uploads/ (so they're
- * available) but reported as "unmatched" so the operator knows.
+ * Files that don't match any record are reported as "unmatched" and are NOT
+ * written to disk (so an arbitrary attacker-chosen filename can't be planted).
  *
  * Response: { success, results: [ { file, status, matched_ids[] } ], summary }
  */
@@ -74,21 +74,39 @@ try {
         $findStmt->execute([$safe, $safe]);
         $rows = $findStmt->fetchAll();
 
-        // Determine the target filename: prefer the exact name the DB stores
-        // (preserves original case), else the sanitized uploaded name.
-        $targetName = $safe;
+        // Only files that a record actually references are written to disk.
+        // Unmatched files are reported but NEVER saved — this removes the
+        // ability to write an arbitrary attacker-chosen filename to uploads/.
+        if (!$rows) {
+            $results[] = ['file' => $origName, 'status' => 'unmatched', 'matched_ids' => []];
+            $unmatched++;
+            continue;
+        }
+
+        // Save under the filename the DB stores, but always passed through
+        // harden_asset_filename() so the on-disk name has a single validated
+        // image extension and no inner dots (no "x.php.jpg" double extension).
+        $targetName = null;
         $matchedIds = [];
         foreach ($rows as $r) {
             $matchedIds[] = $r['id_number'];
-            if (strcasecmp((string) $r['image'], $safe) === 0 && $r['image'] !== '') {
-                $targetName = $r['image'];
-            } elseif (strcasecmp((string) $r['signature'], $safe) === 0 && $r['signature'] !== '') {
-                $targetName = $r['signature'];
+            if ($targetName === null) {
+                if (strcasecmp((string) $r['image'], $safe) === 0 && $r['image'] !== '') {
+                    $targetName = $r['image'];
+                } elseif (strcasecmp((string) $r['signature'], $safe) === 0 && $r['signature'] !== '') {
+                    $targetName = $r['signature'];
+                }
             }
         }
+        $hardened = harden_asset_filename($targetName ?? $safe);
+        if ($hardened === null) {
+            $results[] = ['file' => $origName, 'status' => 'failed', 'reason' => 'Unsafe filename', 'matched_ids' => $matchedIds];
+            $failed++;
+            continue;
+        }
 
-        $existed = file_exists(UPLOADS_DIR . '/' . $targetName);
-        if (!store_uploaded_asset($entry['tmp_name'], $targetName)) {
+        $existed = file_exists(UPLOADS_DIR . '/' . $hardened);
+        if (!store_uploaded_asset($entry['tmp_name'], $hardened)) {
             $results[] = ['file' => $origName, 'status' => 'failed', 'reason' => 'Could not save file', 'matched_ids' => []];
             $failed++;
             continue;
@@ -96,14 +114,8 @@ try {
         if ($existed) {
             $replaced++;
         }
-
-        if ($matchedIds) {
-            $results[] = ['file' => $origName, 'status' => $existed ? 'replaced' : 'matched', 'matched_ids' => $matchedIds];
-            $matched++;
-        } else {
-            $results[] = ['file' => $origName, 'status' => 'unmatched', 'matched_ids' => []];
-            $unmatched++;
-        }
+        $results[] = ['file' => $origName, 'status' => $existed ? 'replaced' : 'matched', 'matched_ids' => $matchedIds];
+        $matched++;
     }
 
     echo json_encode([

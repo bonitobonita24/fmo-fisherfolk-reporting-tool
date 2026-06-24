@@ -30,11 +30,47 @@ function safe_basename($name) {
 
 /**
  * Build a canonical "<id>.<ext>" filename for a record's asset.
+ * Dots are stripped from the id stem so the ONLY dot is the one before the
+ * extension (prevents "id.php" -> "id.php.jpg" multi-extension names).
  */
 function asset_filename_for_id($idNumber, $ext) {
-    $safeId = preg_replace('/[^A-Za-z0-9._-]/', '_', (string) $idNumber);
+    $safeId = preg_replace('/[^A-Za-z0-9_-]/', '_', (string) $idNumber);
+    $safeId = trim($safeId, '._-');
+    if ($safeId === '') {
+        $safeId = 'asset';
+    }
     $ext = strtolower(preg_replace('/[^A-Za-z0-9]/', '', (string) $ext));
+    if (!in_array($ext, ALLOWED_IMAGE_EXT, true)) {
+        $ext = 'jpg';
+    }
     return $safeId . '.' . $ext;
+}
+
+/**
+ * Produce a safe on-disk filename for a declared asset name: exactly one
+ * extension (a validated image type) and no inner dots, so a crafted name like
+ * "shell.php.jpg" can never be written as an executable double-extension file.
+ * Returns null when the name has no acceptable image extension.
+ */
+function harden_asset_filename($name) {
+    $name = basename((string) $name);
+    $origExt = pathinfo($name, PATHINFO_EXTENSION);  // keep original case (DB stores .JPG/.PNG)
+    $check = strtolower($origExt);
+    if ($check === 'jpe') {
+        $check = 'jpeg';
+        $origExt = 'jpeg';
+    }
+    if (!in_array($check, ALLOWED_IMAGE_EXT, true)) {
+        return null;
+    }
+    $stem = pathinfo($name, PATHINFO_FILENAME);     // everything before the last dot
+    $stem = str_replace('.', '_', $stem);            // neutralize inner ".php" etc.
+    $stem = preg_replace('/[^A-Za-z0-9_-]/', '_', $stem);
+    $stem = trim($stem, '._-');
+    if ($stem === '') {
+        $stem = 'asset';
+    }
+    return $stem . '.' . $origExt;
 }
 
 /**

@@ -494,6 +494,7 @@ document.getElementById('assetUploadBtn').addEventListener('click', async () => 
 // ---------------------------------------------------------------------------
 let selectedId = null;
 let searchTimer = null;
+let ffData = [];                 // current search results; rows reference these by index
 const ffSearch = document.getElementById('ffSearch');
 const ffResults = document.getElementById('ffResults');
 
@@ -506,19 +507,30 @@ ffSearch.addEventListener('input', () => {
             const res = await fetch('/api/fisherfolk-search.php?q=' + encodeURIComponent(q));
             const j = await res.json();
             if (!j.success || !j.data.length) {
+                ffData = [];
                 ffResults.innerHTML = '<div class="px-4 py-2 text-gray-400 text-sm">No matches</div>';
             } else {
-                ffResults.innerHTML = j.data.map(r => `
-                    <div class="px-4 py-2 hover:bg-orange-50 cursor-pointer border-b text-sm"
-                         onclick='selectFisherfolk(${JSON.stringify(r).replace(/'/g,"&#39;")})'>
+                ffData = j.data;
+                // No record data is placed into HTML attributes; rows carry only
+                // an integer index and all visible text is escaped via esc().
+                ffResults.innerHTML = ffData.map((r, i) => `
+                    <div class="ff-row px-4 py-2 hover:bg-orange-50 cursor-pointer border-b text-sm" data-idx="${i}">
                         <span class="font-semibold">${esc(r.full_name)}</span>
                         <span class="text-gray-500">— ${esc(r.id_number)} · ${esc(r.address||'')}</span>
-                        <span class="ml-1">${r.has_image?'':'<span class=\"text-red-500\">no photo</span>'} ${r.has_signature?'':'<span class=\"text-red-500\">no sig</span>'}</span>
+                        <span class="ml-1">${r.has_image?'':'<span class="text-red-500">no photo</span>'} ${r.has_signature?'':'<span class="text-red-500">no sig</span>'}</span>
                     </div>`).join('');
             }
             ffResults.classList.remove('hidden');
         } catch (_) { ffResults.classList.add('hidden'); }
     }, 250);
+});
+
+// Event delegation: select the record by its index (no inline handlers).
+ffResults.addEventListener('click', e => {
+    const row = e.target.closest('.ff-row');
+    if (!row) return;
+    const r = ffData[parseInt(row.dataset.idx, 10)];
+    if (r) selectFisherfolk(r);
 });
 
 document.addEventListener('click', e => {
@@ -537,7 +549,6 @@ function selectFisherfolk(r) {
     document.getElementById('singleResult').innerHTML = '';
     document.getElementById('ffSelected').classList.remove('hidden');
 }
-window.selectFisherfolk = selectFisherfolk;
 
 document.getElementById('singleUploadBtn').addEventListener('click', async () => {
     const fileInput = document.getElementById('singleFile');
