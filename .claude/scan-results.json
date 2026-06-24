@@ -1,0 +1,51 @@
+{
+  "scannedAt": "2026-06-24",
+  "techStack": ["PHP 8.3", "MySQL", "PDO", "HTML", "JavaScript", "Bootstrap 5", "Chart.js", "Tailwind (CDN)", "Font Awesome"],
+  "projectType": "full-stack web app",
+  "installedSkills": [
+    {
+      "name": "mysql",
+      "category": "Data & Analytics",
+      "tier": "T2",
+      "reason": "App runs entirely on MySQL via PDO (config/database.php, public/api/*.php); safe read-only queries to verify schema/seed data and debug stats endpoints"
+    },
+    {
+      "name": "owasp-security",
+      "category": "Security",
+      "tier": "T2",
+      "reason": "Public PHP API takes user input (CSV import, query params) and ships exposed debug/test PHP files (debug-images.php, test-api-direct.php, test-env.php, diagnostic.php)"
+    },
+    {
+      "name": "webapp-testing",
+      "category": "Testing & QA",
+      "tier": "T4",
+      "reason": "Playwright-driven testing of the localhost:8080 dashboard and API endpoints"
+    },
+    {
+      "name": "api-documentation",
+      "category": "Documentation",
+      "tier": "T4",
+      "reason": "Nine public/api/*.php endpoints have no formal spec — generate endpoint/auth/response docs"
+    }
+  ],
+  "excludedGlobals": [
+    { "name": "framer", "reason": "Framer SaaS website builder — irrelevant to a self-hosted PHP/MySQL app" },
+    { "name": "framer-code-components", "reason": "Framer React component authoring — no Framer/React in this repo" },
+    { "name": "framer-project-9z4dCuaytv1FtWNeHmcn", "reason": "Specific Framer project binding — unrelated repo" },
+    { "name": "framer-project-NJJPjB275wMPpYRS2Eyt", "reason": "Specific Framer project binding — unrelated repo" },
+    { "name": "revealjs", "reason": "reveal.js slide decks — no presentation work in this repo" }
+  ],
+  "resolvedConflicts": [],
+  "recommendedPlugins": [
+    {
+      "name": "php-pro (fullstack-dev-skills)",
+      "installCommand": "already enabled globally — loads via Skill tool",
+      "reason": "Vanilla PHP 8.3 codebase — typed code, PDO best practices"
+    }
+  ],
+  "skippedOptional": [],
+  "specDriven": {
+    "detected": false
+  },
+  "globalCleanupAdvised": true
+}
